@@ -1,0 +1,317 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Tourist Guide Map</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css" />
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="{% static 'map_app/Municipalities.js' %}"></script>
+    <script src="{% static 'map_app/province.js' %}"></script>
+    <script src="{% static 'map_app/District.js' %}"></script>
+
+    <style>
+        #map {
+            height: 400px;
+            width: 100%;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light shadow p-3 mb-3">
+        <a class="navbar-brand font-weight-bold text-primary" href="/">Tourist Guide Map</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link text-dark font-weight-bold" href="/">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-dark font-weight-bold" href="/about/">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-dark font-weight-bold" href="/documentation/">Documentation</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <style>
+        .nav-link {
+            transition: color 0.3s ease;
+        }
+        .nav-link:hover {
+            color: #007bff;
+        }
+    </style>
+    
+
+
+    <div class="container">
+        <h1 class="text-center my-4">Interactive Tourist Guide Map</h1>
+        <div id="map"></div>
+    
+    </div>
+
+    <script>
+        // Initialize the map
+        var map = L.map('map').setView([27.7172, 85.3240], 13); // Kathmandu
+
+        // Define base layers
+        var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        var satelliteLayer = L.tileLayer('https://{s}.sat.ortho.tiles.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            maxZoom: 19,
+            attribution: '© Esri Imagery'
+        });
+
+        var terrainLayer = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+            maxZoom: 17,
+            attribution: '© OpenTopoMap contributors'
+        });
+
+        // Define overlays
+        var weatherStations = L.layerGroup();
+        var municipalitiesLayer = L.geoJSON(Municipalities, {
+            style: { color: "yellow", weight: 2, fillOpacity: 0.1 },
+            onEachFeature: (feature, layer) => layer.bindPopup(`Municipality: ${feature.properties.LOCAL}`)
+        });
+
+        var provinceLayer = L.geoJSON(Province, {
+            style: { color: "green", weight: 2, fillOpacity: 0.1 },
+            onEachFeature: (feature, layer) => layer.bindPopup(`Province: ${feature.properties.PROVINCE_NAME}`)
+        });
+
+        var districtLayer = L.geoJSON(District, {
+            style: { color: "grey", weight: 2, fillOpacity: 0.1 },
+            onEachFeature: (feature, layer) => layer.bindPopup(`District: ${feature.properties.DISTRICT}`)
+        });
+
+        var geojsonLayer = L.layerGroup(); // For GeoJSON data
+        async function addGeoJSONToLayer() {
+            try {
+                const response = await axios.get('/static/data/tourism_attraction.geojson'); // Adjust the file path if needed
+                const geojsonData = response.data;
+
+                // Add GeoJSON data to the layer group
+                const layer = L.geoJSON(geojsonData, {
+                    onEachFeature: (feature, layer) => {
+                        if (feature.properties) {
+                            layer.bindPopup(`
+                                <strong>Name:</strong> ${feature.properties.name || 'N/A'}<br>
+                                <strong>Category:</strong> ${feature.properties.category || 'N/A'}
+                            `);
+                        }
+                    },
+                    pointToLayer: (feature, latlng) => L.marker(latlng)
+                });
+
+            layer.addTo(geojsonLayer); // Add to geojsonLayer
+            //ojsonLayer.addTo(map);  // Ensure it is visible on the map
+            map.fitBounds(layer.getBounds());
+            } catch (error) {
+                console.error("Error loading GeoJSON data:", error);
+            }
+        }
+        addGeoJSONToLayer();
+
+        
+        // Weather toggle
+        let weatherEnabled = false;
+        map.on('overlayadd', (eventLayer) => {
+            if (eventLayer.name === 'Weather Stations') {
+                weatherEnabled = true;
+                alert('Weather data enabled. Click on the map to fetch weather details.');
+            }
+        });
+        map.on('overlayremove', (eventLayer) => {
+            if (eventLayer.name === 'Weather Stations') {
+                weatherEnabled = false;
+            }
+        });
+
+        // Fetch weather data
+        async function fetchWeatherData(lat, lon) {
+            const apiKey = 'e569c26e83e607eb7de26e5f88115100';
+            const apiUrl = `https://api.openweathermap.org/data/2.5/weather`;
+
+            try {
+                const response = await axios.get(apiUrl, { params: { lat, lon, appid: apiKey, units: 'metric' } });
+                const { description } = response.data.weather[0];
+                const { temp, humidity } = response.data.main;
+                return { description, temp, humidity };
+            } catch (error) {
+                console.error('Error fetching weather data:', error);
+                return null;
+            }
+        }
+
+        // Weather on map click
+        map.on('click', async (e) => {
+            const { lat, lng } = e.latlng;
+
+            if (weatherEnabled) {
+                const weather = await fetchWeatherData(lat, lng);
+                if (weather) {
+                    L.popup()
+                        .setLatLng([lat, lng])
+                        .setContent(`
+                            <strong>Weather:</strong> ${weather.description}<br>
+                            <strong>Temperature:</strong> ${weather.temp}°C<br>
+                            <strong>Humidity:</strong> ${weather.humidity}%
+                        `)
+                        .openOn(map);
+                } else {
+                    alert('Failed to fetch weather data.');
+                }
+            }
+        });
+
+        // Initialize buffer layer
+        var bufferLayer = L.layerGroup(); // Layer group for buffers
+        var bufferEnabled = false; // Track if buffer creation is enabled
+
+        // Sync bufferEnabled with layer control toggle
+        map.on('overlayadd', (eventLayer) => {
+            if (eventLayer.name === "Buffers") {
+                bufferEnabled = true;
+                alert("Buffer creation enabled. Click on the map to create a buffer.");
+            }
+        });
+
+        map.on('overlayremove', (eventLayer) => {
+            if (eventLayer.name === "Buffers") {
+                bufferEnabled = false;
+                alert("Buffer creation disabled.");
+            }
+        });
+
+        // Buffer creation on map click
+        map.on('click', (e) => {
+            const { lat, lng } = e.latlng;
+
+            if (bufferEnabled) {
+                const radius = 5000; // Buffer radius in meters
+                const bufferCircle = L.circle([lat, lng], {
+                    radius: radius,
+                    color: 'blue',
+                    fillColor: 'lightblue',
+                    fillOpacity: 0.4
+                });
+
+                bufferCircle.bindPopup(`
+                    <strong>Buffer Created:</strong><br>
+                    Center: [${lat.toFixed(4)}, ${lng.toFixed(4)}]<br>
+                    Radius: ${radius} meters
+                `).openPopup();
+
+                bufferCircle.addTo(bufferLayer); // Add to the buffer layer
+            }
+        });
+
+        // GeoServer WMS Layers with CQL Filters
+        const hiking = L.tileLayer.wms('http://localhost:8081/geoserver/tourist_guide_map/wms', {
+            layers: 'ne:hiking',
+            format: 'image/png',
+            transparent: true,
+            attribution: '© GeoServer',
+            cql_filter: ""
+        });
+
+        const hotel = L.tileLayer.wms('http://localhost:8081/geoserver/tourist_guide_map/wms', {
+            layers: 'ne:hotel',
+            format: 'image/png',
+            transparent: true,
+            attribution: '© GeoServer',
+            cql_filter: "" 
+        });
+
+        const museum = L.tileLayer.wms('http://localhost:8081/geoserver/tourist_guide_map/wms', {
+            layers: 'ne:museum',
+            format: 'image/png',
+            transparent: true,
+            attribution: '© GeoServer',
+            cql_filter: "" 
+        });
+
+        const picnicSite = L.tileLayer.wms('http://localhost:8081/geoserver/tourist_guide_map/wms', {
+            layers: 'ne:picnic_site',
+            format: 'image/png',
+            transparent: true,
+            attribution: '© GeoServer',
+            cql_filter: "" 
+        });
+
+        const themePark = L.tileLayer.wms('http://localhost:8081/geoserver/tourist_guide_map/wms', {
+            layers: 'ne:theme_park',
+            format: 'image/png',
+            transparent: true,
+            attribution: '© GeoServer',
+            cql_filter: "" 
+        });
+
+        const viewpoint = L.tileLayer.wms('http://localhost:8081/geoserver/tourist_guide_map/wms', {
+            layers: 'ne:viewpoint',
+            format: 'image/png',
+            transparent: true,
+            attribution: '© GeoServer',
+            cql_filter: "" 
+        });
+
+        const zoo = L.tileLayer.wms('http://localhost:8081/geoserver/tourist_guide_map/wms', {
+            layers: 'tourist_guide_map:zoo',
+            format: 'image/png',
+            transparent: true,
+            attribution: '© GeoServer',
+            cql_filter: "" 
+        });
+        // Add the GeoServer WMS layer
+        const tourism_attraction = L.tileLayer.wms('http://localhost:8081/geoserver/k/wms', {
+            layers: 'k:tourism_attraction',
+            format: 'image/png',
+            transparent: true,
+            attribution: 'GeoServer'
+        });
+
+        // Add layer controls
+        var baseMaps = {
+                    "OpenStreetMap": osmLayer,
+                    "Satellite": satelliteLayer,
+                    "Terrain": terrainLayer
+                };
+
+        var overlays = {
+            "Weather Stations": weatherStations,
+            "Municipalities": municipalitiesLayer,
+            "Provinces": provinceLayer,
+            "Districts": districtLayer,
+            "GeoJSON Layer(tourism_attraction)": geojsonLayer,
+            "Buffers": bufferLayer,
+            "Hiking Trails ": hiking,
+            "Hotels ": hotel,
+            "Museums ": museum,
+            "Picnic Sites ": picnicSite,
+            "Theme Parks ": themePark,
+            "Viewpoints ": viewpoint,
+            "Zoos ": zoo,
+            "tourism_attraction":tourism_attraction
+        };
+
+        L.control.layers(baseMaps, overlays).addTo(map);
+
+
+
+
+    </script>
+</body>
+</html>
