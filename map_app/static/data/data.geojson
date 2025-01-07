@@ -1,0 +1,191 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    85.324,
+                    27.703
+                ]
+            },
+            "properties": {
+                "name": "Kathmandu Durbar Square",
+                "category": "Heritage Site",
+                "description": "Historic palace complex and UNESCO World Heritage Site."
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    85.2911,
+                    27.7149
+                ]
+            },
+            "properties": {
+                "name": "Swayambhunath Stupa",
+                "category": "Temple",
+                "description": "Ancient religious complex with panoramic city views."
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    85.3563,
+                    27.7104
+                ]
+            },
+            "properties": {
+                "name": "Pashupatinath Temple",
+                "category": "Temple",
+                "description": "Sacred Hindu temple on the banks of the Bagmati River."
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    86.9253,
+                    27.9881
+                ]
+            },
+            "properties": {
+                "name": "Mount Everest",
+                "category": "Mountain",
+                "description": "The highest peak in the world, a dream destination for trekkers."
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    83.8203,
+                    28.5961
+                ]
+            },
+            "properties": {
+                "name": "Annapurna I",
+                "category": "Mountain",
+                "description": "A major trekking destination in the Himalayas."
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        85.325,
+                        27.704
+                    ],
+                    [
+                        85.2911,
+                        27.7149
+                    ]
+                ]
+            },
+            "properties": {
+                "name": "Kathmandu Valley Hiking Trail",
+                "category": "Hiking Trail",
+                "description": "A scenic hiking trail around the Kathmandu Valley."
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    84.4621,
+                    27.5294
+                ]
+            },
+            "properties": {
+                "name": "Chitwan National Park",
+                "category": "National Park",
+                "description": "Wildlife reserve and UNESCO World Heritage Site."
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    83.945,
+                    28.2096
+                ]
+            },
+            "properties": {
+                "name": "Phewa Lake",
+                "category": "Lake",
+                "description": "A beautiful lake in Pokhara known for its tranquil views and boating."
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    83.8742,
+                    28.5305
+                ]
+            },
+            "properties": {
+                "name": "Annapurna Base Camp",
+                "category": "Base Camp",
+                "description": "Popular trekking destination with close-up views of Annapurna massif."
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    83.9836,
+                    28.2163
+                ]
+            },
+            "properties": {
+                "name": "Gupteshwor Cave",
+                "category": "Cave",
+                "description": "A sacred cave near Pokhara known for its stunning formations."
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    83.9622,
+                    28.2203
+                ]
+            },
+            "properties": {
+                "name": "Devi's Fall",
+                "category": "Waterfall",
+                "description": "A spectacular waterfall near Pokhara, also known as Patale Chhango."
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    85.324,
+                    27.704
+                ]
+            },
+            "properties": {
+                "name": "National Museum of Nepal",
+                "category": "Museum",
+                "description": "Showcasing Nepal's history, art, and culture."
+            }
+        }
+    ]
+}
